@@ -13,6 +13,7 @@
 >[!TIP]
 ><p>Aplicación realizada en clase </p>
 > <h2>App Gneral</h2>
+> <p>Descarga la aplicación <a href="https://github.com/DarwinChamba/CrudProductos/releases/tag/v1.0.0" target="_blank">aquí</a></p>
 > <img src="img/video.gif" alt="Animación" width="150" /> 
 
 <br><br><br>
