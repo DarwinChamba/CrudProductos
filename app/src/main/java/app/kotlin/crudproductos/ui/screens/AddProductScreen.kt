@@ -70,7 +70,7 @@ fun AddProductScreen(
             .padding(vertical = 30.dp, horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TextUi("Agregar Productos")
+        TextUi(if (isEdit){"Editar Producto"}else{"Agregar Productos"})
         //nombre
         TextFieldUi(
             product.name,
@@ -112,7 +112,11 @@ fun AddProductScreen(
         IndicadorImage(listImage.size, pager.currentPage)
         //boton para guardar productos
 
-        SaveButton {
+        SaveButton(if(isEdit){
+            "Edit"
+        }else{
+            "Guardar"
+        }) {
             if (isEdit) {
                 productViewModel.updateProduct()
             } else {

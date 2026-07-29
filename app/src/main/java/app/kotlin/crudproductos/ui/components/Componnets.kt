@@ -1,6 +1,7 @@
 package app.kotlin.crudproductos.ui.components
 
 
+import android.R.attr.onClick
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -12,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,16 +45,22 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,16 +70,76 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import app.kotlin.crudproductos.data.model.PasswordValidation
 import app.kotlin.crudproductos.data.model.Product
 import app.kotlin.crudproductos.util.ImageState
 import app.kotlin.crudproductos.util.ProductState
 import coil.compose.AsyncImage
 import java.nio.file.Files.delete
+
+@Composable
+fun ButtonLogin(
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF4C9EEB),
+            contentColor = Color.White,
+            disabledContainerColor = Color(0xFF4C9EEB).copy(alpha = 0.5f),
+            disabledContentColor = Color.White.copy(alpha = 0.7f)
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 0.dp,
+            disabledElevation = 0.dp
+        ),
+        contentPadding = PaddingValues(vertical = 14.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+    ) {
+        Text(
+            text = "Login",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+fun ButtonGoogle(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Red
+        )
+    ) {
+
+        Text("Continuar con Google")
+    }
+}
+
+@Composable
+fun NoCuenta(navigate: () -> Unit) {
+    Text(
+        "¿No tienes cuenta ?.Registrate",
+        modifier = Modifier.clickable {
+            navigate()
+        })
+}
+
 
 @Composable
 fun DeleteDialog(
@@ -318,7 +387,8 @@ fun CardProduct(
 @Composable
 private fun StockBadge(stock: String) {
     val inStock = stock.toIntOrNull()?.let { it > 0 } ?: true
-    val bg = if (inStock) Color(0xFF4C9EEB).copy(alpha = 0.1f) else Color(0xFFE05C5C).copy(alpha = 0.1f)
+    val bg =
+        if (inStock) Color(0xFF4C9EEB).copy(alpha = 0.1f) else Color(0xFFE05C5C).copy(alpha = 0.1f)
     val fg = if (inStock) Color(0xFF4C9EEB) else Color(0xFFE05C5C)
 
     Box(
@@ -338,7 +408,11 @@ private fun StockBadge(stock: String) {
 
 
 @Composable
-fun DialogResult(productState: ProductState<String>, reset: () -> Unit,aceptar: () -> Unit) {
+fun DialogResult(
+    productState: ProductState<String>,
+    reset: () -> Unit,
+    aceptar: () -> Unit
+) {
     if (productState is ProductState.Idle) return
 
     Dialog(
@@ -488,12 +562,14 @@ private fun DialogButton(text: String, containerColor: Color, onClick: () -> Uni
 
 
 @Composable
-fun SaveButton(onClick: () -> Unit){
-    Button(onClick=onClick,
+fun SaveButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Black
-        )) {
-        Text("Guardar")
+        )
+    ) {
+        Text(text)
     }
 }
 
@@ -525,7 +601,7 @@ fun IndicadorImage(cantidad: Int, currentPage: Int) {
 }
 
 @Composable
-fun CardImages(imageState: ImageState,delete:()->Unit) {
+fun CardImages(imageState: ImageState, delete: () -> Unit) {
     Card(
         modifier = Modifier
             .padding(10.dp)
@@ -590,6 +666,72 @@ fun TextUi(text: String) {
 }
 
 @Composable
+fun TextFieldPassword(
+    value: String,
+    label: String,
+    passwordValidation: PasswordValidation,
+    keyboardType: KeyboardType,
+    onValueChange: (String) -> Unit
+
+) {
+    var show by rememberSaveable { mutableStateOf(false) }
+    var isFcous by rememberSaveable { mutableStateOf(false) }
+
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged {
+                    isFcous = it.isFocused
+                },
+            visualTransformation = if (show) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            label = {
+                Text(label)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = ImeAction.Done
+            ),
+            trailingIcon = {
+                IconButton(onClick = {
+                    show = !show
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = ""
+                    )
+                }
+            }
+        )
+
+        if (isFcous) { //llave de apertura
+
+
+            if (!passwordValidation.minLength) {
+                Text("Contraseña mayor a 7 caracteres", color = Color.Red)
+            }
+
+
+            if (!passwordValidation.hasUpperCase) {
+                Text("Letra en mayuscula", color = Color.Red)
+            }
+
+
+            if (!passwordValidation.hasNumber) {
+                Text("Al menos un número", color = Color.Red)
+            }
+        }//llave de cierre
+    }
+}
+
+
+@Composable
 fun TextFieldUi(
     value: String,
     label: String,
@@ -609,6 +751,35 @@ fun TextFieldUi(
             imeAction = ImeAction.Done
         )
     )
+}
+
+@Composable
+fun TextFieldEmail(
+    value: String,
+    label: String,
+    error: String?,
+    keyboardType: KeyboardType,
+    onValueChange: (String) -> Unit
+
+) {
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text(label)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = ImeAction.Done
+            ),
+            isError = error != null
+        )
+        error?.let {
+            Text(it, color = Color.Red)
+        }
+    }
 }
 
 

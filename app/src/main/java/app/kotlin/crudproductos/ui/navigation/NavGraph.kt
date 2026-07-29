@@ -6,8 +6,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import app.kotlin.crudproductos.ui.screens.AddProductScreen
+import app.kotlin.crudproductos.ui.screens.AuthScreen
 import app.kotlin.crudproductos.ui.screens.HomeScreen
+import app.kotlin.crudproductos.ui.screens.RegisterScreen
+import app.kotlin.crudproductos.ui.screens.SplashRoute
+import app.kotlin.crudproductos.ui.screens.SplashScreen
 import app.kotlin.crudproductos.ui.viewmodel.ProductViewModel
+import app.kotlin.crudproductos.util.Navigate
 
 
 @Composable
@@ -18,7 +23,7 @@ fun NavGraph(
     val navController = rememberNavController()
     NavHost(
         navController,
-        startDestination = "home"
+        startDestination = "splash"
     ) {
         composable("home"){
             HomeScreen(productViewModel){
@@ -29,6 +34,45 @@ fun NavGraph(
             AddProductScreen(productViewModel){
                 navController.navigate("home"){
                     popUpTo  (0)
+                }
+            }
+        }
+        composable("splash") {
+            SplashScreen{
+                when(it){
+                    SplashRoute.AUTH -> {
+                        navController.navigate("auth"){
+                            popUpTo(0)
+                        }
+                    }
+                    SplashRoute.HOME -> {
+                        navController.navigate("home"){
+                            popUpTo(0)
+                        }
+
+                    }
+                }
+
+            }
+        }
+        composable("auth"){
+                        AuthScreen {
+                            when(it){
+                                Navigate.REGISTER -> {
+                                    navController.navigate("register")
+                                }
+                                Navigate.HOME -> {
+                                    navController.navigate("home"){
+                                        popUpTo(0)
+                                    }
+                                }
+                            }
+                        }
+        }
+        composable("register") {
+            RegisterScreen{
+                navController.navigate("home"){
+                    popUpTo(0)
                 }
             }
         }
